@@ -125,7 +125,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   ),
                   decoration: InputDecoration(
                     labelText: 'Email hoặc tên đăng nhập',
-                    hintText: 'email@example.com',
+                    hintText: 'email@... hoặc username',
                     hintStyle: TextStyle(
                       color: AppColors.textSecondary.withValues(alpha: 0.5),
                     ),
@@ -139,9 +139,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
                       return 'Nhập email hoặc tên đăng nhập';
-                    }
-                    if (!v.contains('@')) {
-                      return 'Email không hợp lệ';
                     }
                     return null;
                   },

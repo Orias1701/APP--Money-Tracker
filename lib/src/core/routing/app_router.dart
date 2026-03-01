@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -8,9 +9,12 @@ import '../../features/auth/presentation/screens/recover_code_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/charts/presentation/screens/charts_screen.dart';
+import '../../features/groups/presentation/screens/group_members_screen.dart';
+import '../../features/groups/presentation/screens/manage_groups_screen.dart';
 import '../../features/profile/presentation/screens/me_placeholder_screen.dart';
 import '../../features/records/presentation/screens/records_screen.dart';
 import '../../features/reports/presentation/screens/reports_screen.dart';
+import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/transactions/presentation/screens/add_transaction_screen.dart';
 import '../../shell/main_shell_screen.dart';
 
@@ -87,6 +91,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 pageBuilder: (context, state) => const NoTransitionPage(
                   child: MePlaceholderScreen(),
                 ),
+                routes: [
+                  GoRoute(
+                    path: 'manage-groups',
+                    pageBuilder: (context, state) => const NoTransitionPage(
+                      child: ManageGroupsScreen(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'group-members',
+                    pageBuilder: (context, state) {
+                      final extra = state.extra as Map<String, dynamic>?;
+                      final groupId = extra?['groupId'] as String? ?? '';
+                      final groupName = extra?['groupName'] as String? ?? '';
+                      final isPersonal = extra?['isPersonal'] as bool? ?? true;
+                      return NoTransitionPage(
+                        key: ValueKey('group-members-$groupId'),
+                        child: GroupMembersScreen(
+                          groupId: groupId,
+                          groupName: groupName,
+                          isPersonal: isPersonal,
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -120,6 +149,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final email = state.extra as String? ?? '';
           return ResetPasswordScreen(email: email);
         },
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsScreen(),
       ),
     ],
   );

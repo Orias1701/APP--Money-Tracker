@@ -8,6 +8,8 @@ import '../../../accounts/domain/account.dart';
 import '../../../accounts/presentation/providers/accounts_provider.dart';
 import '../../../categories/domain/category.dart';
 import '../../../categories/presentation/providers/categories_provider.dart';
+import '../../../groups/presentation/providers/active_group_provider.dart';
+import '../../../groups/presentation/widgets/group_switcher.dart';
 import '../../../shared/presentation/providers/filter_provider.dart';
 import '../../../shared/presentation/widgets/filter_bottom_sheet.dart';
 import '../../../transactions/domain/transaction.dart';
@@ -23,8 +25,10 @@ class RecordsScreen extends ConsumerStatefulWidget {
 class _RecordsScreenState extends ConsumerState<RecordsScreen> {
   @override
   Widget build(BuildContext context) {
+    final activeGroup = ref.watch(activeGroupProvider);
     final filterState = ref.watch(filterProvider);
     final params = TransactionListParams(
+      groupId: activeGroup?.id,
       from: filterState.startDate,
       to: filterState.endDate,
       accountIds: filterState.selectedAccountIds.isEmpty
@@ -38,7 +42,7 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Records'),
+        title: const GroupSwitcher(),
         backgroundColor: AppColors.background,
       ),
       floatingActionButton: FloatingActionButton(
@@ -151,6 +155,7 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
                                 transactions: e.value,
                                 accountMap: accountMap,
                                 categoryMap: categoryMap,
+                                showPaidBy: activeGroup?.isPersonal == false,
                               );
                             }).toList(),
                           );
@@ -230,12 +235,14 @@ class _DaySection extends StatelessWidget {
     required this.transactions,
     required this.accountMap,
     required this.categoryMap,
+    this.showPaidBy = false,
   });
 
   final DateTime date;
   final List<Transaction> transactions;
   final Map<String, Account> accountMap;
   final Map<String, Category> categoryMap;
+  final bool showPaidBy;
 
   static const List<String> _weekdays = [
     'Monday',
@@ -292,6 +299,7 @@ class _DaySection extends StatelessWidget {
             amount: FormatHelpers.currency(t.amount),
             isExpense: t.isExpense,
             colorHex: cat?.colorHex,
+            paidByLabel: showPaidBy ? (t.paidByUserName ?? t.paidBy) : null,
           );
         }),
       ],

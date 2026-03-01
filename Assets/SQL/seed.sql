@@ -1,4 +1,8 @@
--- Xóa danh mục cũ (nếu có) để seed lại bộ mới tinh
+-- =============================================================================
+-- SEED: Danh mục mặc định (hệ thống). Chạy trong Supabase SQL Editor sau schema.sql.
+-- =============================================================================
+
+-- Xóa danh mục cũ (user_id null) để seed lại bộ mới
 delete from public.categories where user_id is null;
 
 -- HỆ THỐNG DANH MỤC CHI TIÊU (Expense)
