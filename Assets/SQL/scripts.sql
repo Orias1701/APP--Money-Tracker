@@ -293,3 +293,31 @@ begin
 end;
 $$;
 grant execute on function public.kick_member(uuid, uuid) to authenticated;
+
+-- ---------- 13. RPC: Xoá mềm giao dịch (set row_status = 'deleted') ----------
+-- SECURITY DEFINER để tránh 403; kiểm tra user là thành viên nhóm trước khi update.
+create or replace function public.soft_delete_transaction(p_transaction_id uuid, p_group_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  n int;
+begin
+  if not exists (
+    select 1 from public.group_members gm
+    where gm.group_id = p_group_id and gm.user_id = auth.uid() and gm.status = 'active'
+  ) then
+    return false;
+  end if;
+  update public.transactions
+  set row_status = 'deleted'
+  where id = p_transaction_id and group_id = p_group_id
+    and (row_status is null or row_status = 'active');
+  get diagnostics n = row_count;
+  return n > 0;
+end;
+$$;
+grant execute on function public.soft_delete_transaction(uuid, uuid) to authenticated;
+grant execute on function public.soft_delete_transaction(uuid, uuid) to service_role;
