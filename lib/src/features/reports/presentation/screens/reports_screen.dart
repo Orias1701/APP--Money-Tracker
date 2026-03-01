@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/debug_tap_logger.dart';
 import '../../../../core/utils/format_helpers.dart';
+import '../../../../shell/shell_app_bar_provider.dart';
 import '../../../accounts/domain/account.dart';
 import '../../../accounts/presentation/providers/accounts_provider.dart';
 
@@ -13,13 +14,25 @@ class ReportsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(shellAppBarTitleProvider.notifier).setTitle(
+            3,
+            const Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: Text(
+                'Reports',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          );
+    });
     final accountsAsync = ref.watch(accountsListProvider);
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Reports'),
-        backgroundColor: AppColors.background,
-      ),
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(accountsListProvider),
         child: SingleChildScrollView(

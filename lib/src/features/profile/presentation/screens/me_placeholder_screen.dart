@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../shell/shell_app_bar_provider.dart';
 import '../../../auth/data/auth_repository.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../groups/presentation/providers/active_group_provider.dart';
@@ -67,12 +68,24 @@ class _MePlaceholderScreenState extends ConsumerState<MePlaceholderScreen> {
     final activeGroup = ref.watch(activeGroupProvider);
     final groupsAsync = ref.watch(userGroupsListProvider);
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(shellAppBarTitleProvider.notifier).setTitle(
+            4,
+            const Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: Text(
+                'Me',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          );
+    });
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Me'),
-        backgroundColor: AppColors.background,
-      ),
       body: userAsync.when(
               data: (user) => SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -158,9 +171,12 @@ class _MePlaceholderScreenState extends ConsumerState<MePlaceholderScreen> {
               if (_groupsExpanded) ...[
                 groupsAsync.when(
                   data: (groups) {
-                    return Column(
-                      children: [
-                        ...groups.map((g) {
+                    final indent = MediaQuery.of(context).size.width * 0.1;
+                    return Padding(
+                      padding: EdgeInsets.only(left: indent),
+                      child: Column(
+                        children: [
+                          ...groups.map((g) {
                           final isActive = activeGroup?.id == g.id;
                           return ListTile(
                             dense: true,
@@ -282,6 +298,7 @@ class _MePlaceholderScreenState extends ConsumerState<MePlaceholderScreen> {
                           },
                         ),
                       ],
+                    ),
                     );
                   },
                   loading: () => const Padding(

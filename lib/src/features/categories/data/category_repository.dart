@@ -64,6 +64,41 @@ class CategoryRepository {
     }
   }
 
+  /// Cập nhật danh mục. Chỉ category do user tạo (user_id = current user).
+  Future<({Category? category, String? error})> updateCategory(
+    String categoryId, {
+    String? name,
+    String? iconName,
+    String? colorHex,
+  }) async {
+    final uid = _userId;
+    if (uid == null) {
+      return (category: null, error: 'Chưa đăng nhập.');
+    }
+    try {
+      final map = <String, dynamic>{};
+      if (name != null) map['name'] = name;
+      if (iconName != null) map['icon_name'] = iconName;
+      if (colorHex != null) map['color_hex'] = colorHex;
+      if (map.isEmpty) {
+        return (category: null, error: 'Không có trường nào để cập nhật.');
+      }
+      final res = await _client
+          .from('categories')
+          .update(map)
+          .eq('id', categoryId)
+          .eq('user_id', uid)
+          .select()
+          .single();
+      return (category: Category.fromMap(res), error: null);
+    } catch (e) {
+      return (
+        category: null,
+        error: e.toString().replaceFirst(RegExp(r'^Exception:?\s*', caseSensitive: false), ''),
+      );
+    }
+  }
+
   /// Xoá mềm: set status = 'deleted'. Chỉ category do user tạo (user_id = current user).
   Future<bool> softDeleteCategory(String categoryId) async {
     final uid = _userId;
