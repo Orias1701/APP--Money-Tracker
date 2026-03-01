@@ -29,7 +29,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   Category? _selectedCategory;
   Account? _fromAccount;
   Account? _toAccount;
-  String? _paidByUserId;
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
   DateTime _date = DateTime.now();
@@ -76,7 +75,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Tên danh mục',
                       hintText: 'VD: Lương',
-                      border: OutlineInputBorder(),
                     ),
                     autofocus: true,
                   ),
@@ -224,7 +222,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       );
       return;
     }
-    final paidBy = _paidByUserId ?? currentUser.id;
+    final paidBy = currentUser.id;
     setState(() => _isLoading = true);
     final repo = ref.read(transactionRepositoryProvider);
     final tx = await repo.addTransaction(
@@ -388,55 +386,26 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               builder: (context) {
                 final activeGroup = ref.watch(activeGroupProvider);
                 final currentUserAsync = ref.watch(currentUserProvider);
-                final paidByDefault = currentUserAsync.valueOrNull?.id;
                 final showPaidBy = activeGroup != null && !activeGroup.isPersonal;
-                final membersAsync = showPaidBy
-                    ? ref.watch(groupMembersProvider(activeGroup.id))
-                    : null;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (showPaidBy && membersAsync != null) ...[
-                      membersAsync.when(
-                        data: (members) {
-                          final selectedId = _paidByUserId ?? paidByDefault;
-                          if (members.isEmpty) return const SizedBox.shrink();
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: DropdownButtonFormField<String>(
-                              value: members.any((m) => m.userId == selectedId)
-                                  ? selectedId
-                                  : (members.isNotEmpty ? members.first.userId : null),
-                              decoration: const InputDecoration(
-                                labelText: 'Người thanh toán',
-                                border: OutlineInputBorder(),
-                              ),
-                              dropdownColor: AppColors.surface,
-                              items: members
-                                  .map(
-                                    (m) => DropdownMenuItem<String>(
-                                      value: m.userId,
-                                      child: Text(
-                                        m.user?.fullName?.trim().isNotEmpty == true
-                                            ? m.user!.fullName!
-                                            : (m.user?.username ?? m.userId),
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (id) {
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  if (mounted) setState(() => _paidByUserId = id);
-                                });
-                              },
-                            ),
-                          );
-                        },
-                        loading: () => const SizedBox.shrink(),
-                        error: (_, __) => const SizedBox.shrink(),
+                if (!showPaidBy) return const SizedBox.shrink();
+                final user = currentUserAsync.valueOrNull;
+                final paidByName = user?.fullName?.trim().isNotEmpty == true
+                    ? user!.fullName!
+                    : (user?.username ?? 'Bạn');
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Người thanh toán',
+                    ),
+                    child: Text(
+                      paidByName,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
                       ),
-                    ],
-                  ],
+                    ),
+                  ),
                 );
               },
             ),
@@ -506,7 +475,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               ],
               decoration: const InputDecoration(
                 labelText: 'Số tiền',
-                border: OutlineInputBorder(),
               ),
               onChanged: (_) {
                 DebugTapLogger.log('AddTx: Amount onChanged');
@@ -539,7 +507,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               controller: _noteController,
               decoration: const InputDecoration(
                 labelText: 'Ghi chú',
-                border: OutlineInputBorder(),
               ),
               maxLines: 2,
             ),
@@ -598,7 +565,6 @@ class _AccountSelector extends StatelessWidget {
           decoration: const InputDecoration(
             labelText: 'Tên ví',
             hintText: 'VD: Tiền mặt',
-            border: OutlineInputBorder(),
           ),
           autofocus: true,
         ),
@@ -659,7 +625,6 @@ class _AccountSelector extends StatelessWidget {
           initialValue: value,
           decoration: InputDecoration(
             labelText: label,
-            border: const OutlineInputBorder(),
           ),
           dropdownColor: AppColors.surface,
           items: [

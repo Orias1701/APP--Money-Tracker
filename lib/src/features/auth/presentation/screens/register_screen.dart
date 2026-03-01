@@ -78,13 +78,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   textCapitalization: TextCapitalization.none,
                   autocorrect: false,
                   style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Tên đăng nhập',
                     hintText: 'username',
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                    border: const OutlineInputBorder(),
-                    labelStyle: const TextStyle(color: AppColors.textSecondary),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) return 'Nhập tên đăng nhập';
@@ -95,13 +91,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 TextFormField(
                   controller: _fullNameController,
                   style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Họ tên (tùy chọn)',
                     hintText: 'Nguyễn Văn A',
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                    border: const OutlineInputBorder(),
-                    labelStyle: const TextStyle(color: AppColors.textSecondary),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -109,13 +101,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Email',
                     hintText: 'email@example.com',
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                    border: const OutlineInputBorder(),
-                    labelStyle: const TextStyle(color: AppColors.textSecondary),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) return 'Nhập email';
@@ -131,10 +119,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   decoration: InputDecoration(
                     labelText: 'Mật khẩu',
                     hintText: 'Tối thiểu 6 ký tự',
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                    border: const OutlineInputBorder(),
-                    labelStyle: const TextStyle(color: AppColors.textSecondary),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -156,10 +140,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   decoration: InputDecoration(
                     labelText: 'Xác nhận mật khẩu',
                     hintText: 'Nhập lại mật khẩu',
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                    border: const OutlineInputBorder(),
-                    labelStyle: const TextStyle(color: AppColors.textSecondary),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureConfirm ? Icons.visibility_off : Icons.visibility,
@@ -184,11 +164,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const SizedBox(height: 28),
                 FilledButton(
                   onPressed: _isLoading ? null : _submit,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                  ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 22,

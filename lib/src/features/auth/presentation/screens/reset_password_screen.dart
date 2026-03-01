@@ -68,11 +68,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   initialValue: widget.email,
                   readOnly: true,
                   style: const TextStyle(color: AppColors.textSecondary, fontSize: 16),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Email',
-                    border: const OutlineInputBorder(),
-                    labelStyle: const TextStyle(color: AppColors.textSecondary),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -83,10 +80,6 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   decoration: InputDecoration(
                     labelText: 'Mật khẩu mới',
                     hintText: 'Tối thiểu 6 ký tự',
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                    border: const OutlineInputBorder(),
-                    labelStyle: const TextStyle(color: AppColors.textSecondary),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -108,10 +101,6 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   decoration: InputDecoration(
                     labelText: 'Xác nhận mật khẩu mới',
                     hintText: 'Nhập lại mật khẩu',
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                    border: const OutlineInputBorder(),
-                    labelStyle: const TextStyle(color: AppColors.textSecondary),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureConfirm ? Icons.visibility_off : Icons.visibility,
@@ -135,11 +124,6 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 const SizedBox(height: 28),
                 FilledButton(
                   onPressed: _isLoading ? null : _submit,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                  ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 22,

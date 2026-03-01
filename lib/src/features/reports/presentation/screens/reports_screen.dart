@@ -192,7 +192,6 @@ class ReportsScreen extends ConsumerWidget {
                 decoration: const InputDecoration(
                   labelText: 'Tên',
                   hintText: 'VD: Tiền mặt',
-                  border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),

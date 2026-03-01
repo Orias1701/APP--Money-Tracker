@@ -222,7 +222,7 @@ class _NavBarShapePainter extends CustomPainter {
   }
 }
 
-class _NavItem extends StatelessWidget {
+class _NavItem extends StatefulWidget {
   const _NavItem({
     required this.icon,
     required this.label,
@@ -236,33 +236,48 @@ class _NavItem extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_NavItem> createState() => _NavItemState();
+}
+
+class _NavItemState extends State<_NavItem> {
+  var _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    final iconColor = selected ? AppColors.primary : AppColors.textSecondary;
-    final textColor = selected ? AppColors.primary : AppColors.textSecondary;
+    final iconColor = widget.selected ? AppColors.primary : AppColors.textSecondary;
+    final textColor = widget.selected ? AppColors.primary : AppColors.textSecondary;
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        hoverColor: Colors.transparent,
-        splashColor: AppColors.primary.withValues(alpha: 0.2),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        onTap: widget.onTap,
         child: SizedBox.expand(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 24, color: iconColor),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: textColor,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+          child: Center(
+            child: Transform.scale(
+              scale: _pressed ? 1.1 : 1.0,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(widget.icon, size: 24, color: iconColor),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.label,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: textColor,
+                      fontWeight: widget.selected ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
