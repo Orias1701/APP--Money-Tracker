@@ -45,66 +45,148 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     super.dispose();
   }
 
+  static const List<String> _categoryColorPalette = [
+    '#F44336', '#E91E63', '#9C27B0', '#673AB7',
+    '#3F51B5', '#2196F3', '#03A9F4', '#00BCD4',
+    '#009688', '#4CAF50', '#8BC34A', '#CDDC39',
+    '#FFEB3B', '#FFC107', '#FF9800', '#FF5722',
+    '#795548', '#9E9E9E', '#607D8B', '#6B7280',
+  ];
+
   Future<void> _showAddCategoryDialog(int orderIndex) async {
     final nameController = TextEditingController();
+    String selectedColorHex = _categoryColorPalette.first;
     await showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Thêm danh mục'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Tên danh mục',
-            hintText: 'VD: Lương',
-            border: OutlineInputBorder(),
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Hủy'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              final name = nameController.text.trim();
-              if (name.isEmpty) return;
-              Navigator.of(ctx).pop();
-              final repo = ref.read(categoryRepositoryProvider);
-              final newCat = await repo.addCategory(
-                name: name,
-                type: _type,
-                orderIndex: orderIndex,
-              );
-              final type = _type;
-              if (!context.mounted) return;
-              DebugTapLogger.log(
-                'AddTx: AddCategory dialog OK, scheduling invalidate',
-              );
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                DebugTapLogger.log(
-                  'AddTx: PostFrame invalidate categories + setState',
-                );
-                ref.invalidate(categoriesByTypeProvider(type));
-                if (newCat != null && mounted)
-                  setState(() => _selectedCategory = newCat);
-                if (mounted && newCat == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Không thêm được danh mục')),
-                  );
-                }
-              });
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.black,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            title: const Text('Thêm danh mục'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Tên danh mục',
+                      hintText: 'VD: Lương',
+                      border: OutlineInputBorder(),
+                    ),
+                    autofocus: true,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Màu danh mục',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: _categoryColorPalette.map((hex) {
+                      final color = _colorFromHex(hex);
+                      final isSelected = selectedColorHex == hex;
+                      return GestureDetector(
+                        onTap: () {
+                          setDialogState(() => selectedColorHex = hex);
+                        },
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.transparent,
+                              width: 3,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: color.withValues(alpha: 0.5),
+                                blurRadius: isSelected ? 6 : 2,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: isSelected
+                              ? const Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 20,
+                                )
+                              : null,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
             ),
-            child: const Text('Thêm'),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Hủy'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  final name = nameController.text.trim();
+                  if (name.isEmpty) return;
+                  Navigator.of(ctx).pop();
+                  final repo = ref.read(categoryRepositoryProvider);
+                  final result = await repo.addCategory(
+                    name: name,
+                    type: _type,
+                    orderIndex: orderIndex,
+                    colorHex: selectedColorHex,
+                  );
+                  final type = _type;
+                  if (!context.mounted) return;
+                  DebugTapLogger.log(
+                    'AddTx: AddCategory dialog OK, scheduling invalidate',
+                  );
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    DebugTapLogger.log(
+                      'AddTx: PostFrame invalidate categories + setState',
+                    );
+                    ref.invalidate(categoriesByTypeProvider(type));
+                    if (result.category != null && mounted) {
+                      setState(() => _selectedCategory = result.category);
+                    }
+                    if (mounted && result.category == null) {
+                      final msg = result.error?.isNotEmpty == true
+                          ? result.error!
+                          : 'Không thêm được danh mục';
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(msg)),
+                      );
+                    }
+                  });
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.black,
+                ),
+                child: const Text('Thêm'),
+              ),
+            ],
+          );
+        },
       ),
     );
+  }
+
+  Color _colorFromHex(String hex) {
+    final h = hex.startsWith('#') ? hex : '#$hex';
+    if (h.length != 7) return AppColors.textSecondary;
+    return Color(int.parse(h.substring(1), radix: 16) + 0xFF000000);
   }
 
   Future<void> _save() async {
@@ -353,7 +435,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             const SizedBox(height: 24),
             TextFormField(
               controller: _amountController,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                AmountInputFormatter(),
+              ],
               decoration: const InputDecoration(
                 labelText: 'Số tiền',
                 border: OutlineInputBorder(),

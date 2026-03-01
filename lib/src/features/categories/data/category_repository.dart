@@ -26,7 +26,8 @@ class CategoryRepository {
   }
 
   /// Thêm danh mục của user (user_id = current user).
-  Future<Category?> addCategory({
+  /// Trả về (category, error): nếu lỗi thì category == null và error có nội dung.
+  Future<({Category? category, String? error})> addCategory({
     required String name,
     required String type,
     String iconName = 'category',
@@ -34,7 +35,12 @@ class CategoryRepository {
     int orderIndex = 0,
   }) async {
     final uid = _userId;
-    if (uid == null) return null;
+    if (uid == null) {
+      return (
+        category: null,
+        error: 'Chưa đăng nhập. Vui lòng đăng nhập lại.',
+      );
+    }
     try {
       final res = await _client.from('categories').insert({
         'user_id': uid,
@@ -45,9 +51,13 @@ class CategoryRepository {
         'order_index': orderIndex,
         'is_active': true,
       }).select().single();
-      return Category.fromMap(res);
-    } catch (_) {
-      return null;
+      return (category: Category.fromMap(res), error: null);
+    } catch (e) {
+      // Thường gặp: RLS policy chặn INSERT → bật policy INSERT cho user trong Supabase Dashboard.
+      return (
+        category: null,
+        error: e.toString().replaceFirst(RegExp(r'^Exception:?\s*', caseSensitive: false), ''),
+      );
     }
   }
 }
