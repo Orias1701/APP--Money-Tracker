@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../providers/active_group_provider.dart';
 import '../../domain/group.dart';
+import '../providers/active_group_provider.dart';
+
+/// Padding và font nhỏ cho dropdown nhóm (thu gọn ~40% chiều cao).
+const _kCompactPadding = EdgeInsets.symmetric(horizontal: 12, vertical: 10);
+const _kCompactFontSize = 12.0;
+const _kCompactBorderRadius = 12.0;
 
 class GroupSwitcher extends ConsumerWidget {
   const GroupSwitcher({super.key});
@@ -16,58 +21,110 @@ class GroupSwitcher extends ConsumerWidget {
     return groupsAsync.when(
       data: (groups) {
         if (groups.isEmpty) {
-          return Text(
-            activeGroup?.name ?? 'Nhóm',
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
+          return InputDecorator(
+            decoration: const InputDecoration(
+              contentPadding: _kCompactPadding,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(_kCompactBorderRadius)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(_kCompactBorderRadius)),
+              ),
+              filled: true,
+              fillColor: AppColors.surface,
+            ),
+            child: Text(
+              activeGroup?.name ?? '—',
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: _kCompactFontSize,
+              ),
             ),
           );
         }
-        final selected = activeGroup != null &&
-                groups.any((g) => g.id == activeGroup.id)
-            ? groups.firstWhere((g) => g.id == activeGroup.id)
-            : groups.first;
-        return DropdownButtonHideUnderline(
-          child: DropdownButton<AppGroup>(
-            value: selected,
-            isExpanded: true,
-            dropdownColor: AppColors.surface,
-            icon: const Icon(Icons.arrow_drop_down, color: AppColors.textPrimary),
-            items: groups
-                .map(
-                  (g) => DropdownMenuItem<AppGroup>(
-                    value: g,
-                    child: Text(
-                      g.name,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                )
-                .toList(),
-            onChanged: (g) {
-              if (g != null) {
-                ref.read(activeGroupProvider.notifier).setActiveGroup(g);
-              }
-            },
+        AppGroup selected;
+        try {
+          selected = activeGroup != null &&
+                  groups.any((g) => g.id == activeGroup.id)
+              ? groups.firstWhere((g) => g.id == activeGroup.id)
+              : groups.first;
+        } catch (_) {
+          selected = groups.first;
+        }
+        return DropdownButtonFormField<AppGroup>(
+          value: selected,
+          isExpanded: true,
+          decoration: const InputDecoration(
+            contentPadding: _kCompactPadding,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(_kCompactBorderRadius)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(_kCompactBorderRadius)),
+            ),
+            filled: true,
+            fillColor: AppColors.surface,
           ),
+          dropdownColor: AppColors.surface,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: _kCompactFontSize,
+          ),
+          items: groups
+              .map(
+                (g) => DropdownMenuItem<AppGroup>(
+                  value: g,
+                  child: Text(
+                    g.name,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: _kCompactFontSize),
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: (g) {
+            if (g != null) {
+              ref.read(activeGroupProvider.notifier).setActiveGroup(g);
+            }
+          },
         );
       },
-      loading: () => Text(
-        activeGroup?.name ?? 'Nhóm',
-        style: const TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 16,
+      loading: () => InputDecorator(
+        decoration: const InputDecoration(
+          contentPadding: _kCompactPadding,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(_kCompactBorderRadius)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(_kCompactBorderRadius)),
+          ),
+          filled: true,
+          fillColor: AppColors.surface,
+        ),
+        child: Text(
+          activeGroup?.name ?? 'Đang tải...',
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: _kCompactFontSize,
+          ),
         ),
       ),
-      error: (_, __) => Text(
-        activeGroup?.name ?? 'Nhóm',
-        style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
+      error: (_, __) => InputDecorator(
+        decoration: const InputDecoration(
+          contentPadding: _kCompactPadding,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(_kCompactBorderRadius)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(_kCompactBorderRadius)),
+          ),
+          filled: true,
+          fillColor: AppColors.surface,
+        ),
+        child: Text(
+          activeGroup?.name ?? 'Lỗi',
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: _kCompactFontSize),
+        ),
       ),
     );
   }

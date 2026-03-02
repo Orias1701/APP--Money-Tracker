@@ -34,9 +34,19 @@ class ChartsParams {
   int get hashCode => Object.hash(groupId, from, to);
 }
 
+/// Params dùng cho danh sách giao dịch, đồng bộ với ChartsParams để chart tự refetch khi giao dịch thay đổi.
+TransactionListParams _txParams(ChartsParams params) {
+  return TransactionListParams(
+    groupId: params.groupId,
+    from: params.from,
+    to: params.to,
+  );
+}
+
 final expenseAnalyticsProvider =
     FutureProvider.family<ExpenseAnalytics, ChartsParams>((ref, params) async {
       if (params.groupId.isEmpty) return const ExpenseAnalytics(total: 0, byCategory: []);
+      ref.watch(transactionsListProvider(_txParams(params)));
       return ref.read(analyticsRepositoryProvider).getExpenseAnalytics(
             groupId: params.groupId,
             from: params.from,
@@ -47,6 +57,7 @@ final expenseAnalyticsProvider =
 final incomeAnalyticsProvider =
     FutureProvider.family<IncomeAnalytics, ChartsParams>((ref, params) async {
       if (params.groupId.isEmpty) return const IncomeAnalytics(total: 0, byCategory: []);
+      ref.watch(transactionsListProvider(_txParams(params)));
       return ref.read(analyticsRepositoryProvider).getIncomeAnalytics(
             groupId: params.groupId,
             from: params.from,
@@ -57,6 +68,7 @@ final incomeAnalyticsProvider =
 final topIncomeProvider =
     FutureProvider.family<List<Transaction>, ChartsParams>((ref, params) async {
       if (params.groupId.isEmpty) return [];
+      ref.watch(transactionsListProvider(_txParams(params)));
       final repo = ref.read(analyticsRepositoryProvider);
       return repo.getTopTransactions(
         groupId: params.groupId,
@@ -70,6 +82,7 @@ final topIncomeProvider =
 final topExpenseProvider =
     FutureProvider.family<List<Transaction>, ChartsParams>((ref, params) async {
       if (params.groupId.isEmpty) return [];
+      ref.watch(transactionsListProvider(_txParams(params)));
       final repo = ref.read(analyticsRepositoryProvider);
       return repo.getTopTransactions(
         groupId: params.groupId,

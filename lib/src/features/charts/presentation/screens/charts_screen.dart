@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/format_helpers.dart';
+import '../../../../shell/shell_app_bar_provider.dart';
 import '../../../groups/presentation/providers/active_group_provider.dart';
 import '../../../shared/presentation/providers/filter_provider.dart';
-import '../../../shared/presentation/widgets/filter_bottom_sheet.dart';
 import '../../../transactions/domain/transaction.dart';
 import '../../../categories/presentation/providers/categories_provider.dart';
 import '../../data/analytics_repository.dart';
@@ -41,50 +41,61 @@ class _ChartsScreenState extends ConsumerState<ChartsScreen> {
       to: effectiveEnd,
     );
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(shellAppBarTitleProvider.notifier).setTitle(
+            1,
+            const Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: Text(
+                'Charts',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          );
+    });
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(
-          title: const Text('Charts'),
-          backgroundColor: AppColors.background,
-          bottom: const TabBar(
-            indicatorColor: AppColors.primary,
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.textSecondary,
-            tabs: [
-              Tab(text: 'Tổng quan'),
-              Tab(text: 'Thu'),
-              Tab(text: 'Chi'),
-            ],
-          ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          heroTag: 'charts_fab',
-          onPressed: () {
-            FilterBottomSheet.show(context);
-          },
-          backgroundColor: AppColors.primary,
-          child: const Icon(Icons.filter_list, color: Colors.black),
-        ),
-        body: TabBarView(
+        body: Column(
           children: [
-            _OverviewTabContent(
-              params: params,
-              filterState: filterState,
-              onRefresh: () async => _invalidateAll(),
+            const TabBar(
+              indicatorColor: AppColors.primary,
+              labelColor: AppColors.primary,
+              unselectedLabelColor: AppColors.textSecondary,
+              tabs: [
+                Tab(text: 'Tổng quan'),
+                Tab(text: 'Thu'),
+                Tab(text: 'Chi'),
+              ],
             ),
-            _ChartTabContent(
-              isIncome: true,
-              params: params,
-              filterState: filterState,
-              onRefresh: () async => _invalidateAll(),
-            ),
-            _ChartTabContent(
-              isIncome: false,
-              params: params,
-              filterState: filterState,
-              onRefresh: () async => _invalidateAll(),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _OverviewTabContent(
+                    params: params,
+                    filterState: filterState,
+                    onRefresh: () async => _invalidateAll(),
+                  ),
+                  _ChartTabContent(
+                    isIncome: true,
+                    params: params,
+                    filterState: filterState,
+                    onRefresh: () async => _invalidateAll(),
+                  ),
+                  _ChartTabContent(
+                    isIncome: false,
+                    params: params,
+                    filterState: filterState,
+                    onRefresh: () async => _invalidateAll(),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
