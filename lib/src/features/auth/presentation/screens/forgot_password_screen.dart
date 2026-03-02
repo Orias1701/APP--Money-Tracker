@@ -70,13 +70,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Email',
                     hintText: 'email@example.com',
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                    border: const OutlineInputBorder(),
-                    labelStyle: const TextStyle(color: AppColors.textSecondary),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) return 'Nhập email';
@@ -94,11 +90,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 const SizedBox(height: 28),
                 FilledButton(
                   onPressed: _isLoading ? null : _submit,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                  ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 22,

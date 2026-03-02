@@ -109,7 +109,6 @@ class _MeFriendTabState extends ConsumerState<MeFriendTab> {
                   controller: _searchController,
                   decoration: const InputDecoration(
                     hintText: 'Username hoặc họ tên (tối thiểu 2 ký tự)',
-                    border: OutlineInputBorder(),
                     filled: true,
                     fillColor: AppColors.surface,
                   ),

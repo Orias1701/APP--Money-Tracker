@@ -78,13 +78,9 @@ class _RecoverCodeScreenState extends ConsumerState<RecoverCodeScreen> {
                   keyboardType: TextInputType.number,
                   maxLength: 6,
                   style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, letterSpacing: 8),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Mã xác nhận',
                     hintText: '123456',
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                    border: const OutlineInputBorder(),
-                    labelStyle: const TextStyle(color: AppColors.textSecondary),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                   ),
                   onChanged: (_) => setState(() => _errorMessage = null),
                 ),
@@ -98,11 +94,6 @@ class _RecoverCodeScreenState extends ConsumerState<RecoverCodeScreen> {
                 const SizedBox(height: 28),
                 FilledButton(
                   onPressed: _isLoading ? null : _submit,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                  ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 22,

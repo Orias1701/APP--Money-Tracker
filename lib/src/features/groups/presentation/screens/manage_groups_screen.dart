@@ -114,7 +114,6 @@ class _ManageGroupsScreenState extends ConsumerState<ManageGroupsScreen> {
               decoration: const InputDecoration(
                 labelText: 'Tên nhóm',
                 hintText: 'VD: Chi tiêu gia đình',
-                border: OutlineInputBorder(),
               ),
               style: const TextStyle(color: AppColors.textPrimary),
               onSubmitted: (_) => _createGroup(),
@@ -157,7 +156,6 @@ class _ManageGroupsScreenState extends ConsumerState<ManageGroupsScreen> {
               decoration: const InputDecoration(
                 labelText: 'ID nhóm',
                 hintText: 'Dán ID nhóm được chia sẻ',
-                border: OutlineInputBorder(),
               ),
               style: const TextStyle(color: AppColors.textPrimary),
               onSubmitted: (_) => _joinGroup(),
