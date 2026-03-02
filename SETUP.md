@@ -31,6 +31,12 @@ Tài liệu này liệt kê SDK, công cụ, extension và các bước cần th
 - **Cài đặt:** [Adoptium](https://adoptium.net/) hoặc Oracle JDK, sau đó set **`JAVA_HOME`**.
 - **Kiểm tra:**  
   `java -version`
+- **Windows – đặt JAVA_HOME vĩnh viễn (tránh lỗi "supplied javaHome seems to be invalid"):**  
+  `JAVA_HOME` phải trỏ tới **thư mục JDK có chứa `bin\java.exe`** (ví dụ `E:\_Compliers\JavaJDK\JavaJDK21`, không phải `E:\_Compliers\JavaJDK`). Trong PowerShell (chạy một lần):
+  ```powershell
+  [System.Environment]::SetEnvironmentVariable("JAVA_HOME", "E:\_Compliers\JavaJDK\JavaJDK21", "User")
+  ```
+  Sau đó **đóng hết Cursor rồi mở lại** để extension Gradle nhận biến mới.
 
 ---
 
@@ -113,9 +119,10 @@ SUPABASE_ANON_KEY=your-anon-key-here
 2. **Bật RLS và policy:**  
    Mở **SQL Editor**, chạy lần lượt:
    - `Assets/SQL/schema.sql` (tạo bảng nếu chưa có)
-   - `Assets/SQL/rls_policies.sql` (tránh lỗi 403 khi thêm tài khoản/giao dịch)
-   - `Assets/SQL/rpc_get_email_for_login.sql` (nếu cần đăng nhập bằng email hoặc tên)
+   - `Assets/SQL/migration_groups_rls_rpc.sql` (**bắt buộc** – tránh lỗi 500 khi load nhóm, giao dịch, tạo nhóm, tham gia nhóm)
    - `Assets/SQL/seed.sql` (nếu cần dữ liệu mẫu)
+   
+   **Nếu gặp lỗi 500** khi vào Me, Records, Charts hoặc khi tạo giao dịch: chạy `Assets/SQL/migration_groups_rls_rpc.sql` trong SQL Editor.
 
 ### 6.4. Chạy ứng dụng
 
@@ -146,10 +153,37 @@ flutter build apk
 
 ---
 
-## 8. Tài liệu tham khảo trong repo
+## 8. Lỗi thường gặp (Troubleshooting)
+
+### LicenceNotAcceptedException (NDK / Android SDK)
+
+- **Triệu chứng:** Build báo `LicenceNotAcceptedException`, thiếu `ndk;28.2.x` hoặc SDK packages.
+- **Cách 1:** Chạy và chấp nhận giấy phép (gõ `y` khi được hỏi). **Lưu ý:** đường dẫn phải có **ký tự ổ đĩa** (ví dụ `E:`).
+  ```powershell
+  # PowerShell – thay E: bằng ổ đĩa của bạn nếu khác
+  & "E:\_DevTools\Android\sdk\cmdline-tools\latest\bin\sdkmanager.bat" --licenses
+  ```
+  Hoặc nếu đã set `ANDROID_HOME`:
+  ```powershell
+  & "$env:ANDROID_HOME\cmdline-tools\latest\bin\sdkmanager.bat" --licenses
+  ```
+- **Cách 2:** Đã tạo sẵn thư mục `licenses` và một số file trong SDK; nếu vẫn lỗi, dùng Cách 1 hoặc Android Studio → SDK Manager → cài NDK và chấp nhận license.
+
+### JavaVersion / IllegalArgumentException: 25.0.1
+
+- **Triệu chứng:** Gradle báo `IllegalArgumentException: 25.0.1` khi build Android (Kotlin không nhận Java 25).
+- **Cách xử lý:** Dùng **JDK 17 hoặc 21** cho Android build:
+  - Đặt `JAVA_HOME` trỏ tới JDK 17/21, hoặc
+  - Trong `android/gradle.properties` bỏ comment và sửa đường dẫn:
+    ```properties
+    org.gradle.java.home=C:\\Program Files\\Java\\jdk-17
+    ```
+  Sau đó chạy lại `flutter build apk` hoặc `./gradlew assembleDebug`.
+
+---
+
+## 9. Tài liệu tham khảo trong repo
 
 - **README.md** – Tổng quan và hướng dẫn nhanh.
 - **STRUCTURE.md** – Kiến trúc thư mục và database.
 - **.env.example** – Mẫu biến môi trường.
-
-Nếu gặp lỗi build (ví dụ Kotlin/Java version), kiểm tra JDK đang dùng (`java -version`) và khuyến nghị dùng JDK 17 hoặc 21 cho Android build.

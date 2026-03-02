@@ -10,11 +10,14 @@ class CategoryRepository {
 
   String? get _userId => _client.auth.currentUser?.id;
 
-  /// Lấy danh mục: hệ thống (user_id null) + của user.
+  /// Lấy danh mục: hệ thống + của user, chỉ status active (xoá mềm).
   Future<List<Category>> getCategories({String? type}) async {
     final uid = _userId;
     try {
       var query = _client.from('categories').select().eq('is_active', true);
+      try {
+        query = query.or('status.is.null,status.eq.active');
+      } catch (_) {}
       if (type != null) query = query.eq('type', type);
       final res = uid == null
           ? await query.isFilter('user_id', null).order('order_index')
@@ -58,6 +61,22 @@ class CategoryRepository {
         category: null,
         error: e.toString().replaceFirst(RegExp(r'^Exception:?\s*', caseSensitive: false), ''),
       );
+    }
+  }
+
+  /// Xoá mềm: set status = 'deleted'. Chỉ category do user tạo (user_id = current user).
+  Future<bool> softDeleteCategory(String categoryId) async {
+    final uid = _userId;
+    if (uid == null) return false;
+    try {
+      await _client
+          .from('categories')
+          .update({'status': 'deleted'})
+          .eq('id', categoryId)
+          .eq('user_id', uid);
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 }

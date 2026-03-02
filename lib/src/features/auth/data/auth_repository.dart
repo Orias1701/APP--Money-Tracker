@@ -73,13 +73,16 @@ class AuthRepository {
   Future<AuthResult<AppUser>> signUpWithEmail({
     required String email,
     required String password,
+    required String username,
     String? fullName,
   }) async {
     try {
+      final meta = <String, dynamic>{'username': username.trim()};
+      if (fullName != null && fullName.trim().isNotEmpty) meta['full_name'] = fullName.trim();
       await _client.auth.signUp(
         email: email.trim(),
         password: password,
-        data: fullName != null && fullName.isNotEmpty ? {'full_name': fullName} : null,
+        data: meta.isNotEmpty ? meta : null,
       );
       var session = _client.auth.currentSession;
       if (session == null) {
@@ -176,13 +179,25 @@ class AuthRepository {
     return e.toString();
   }
 
+  /// Cập nhật full name trong profile (username không đổi).
+  Future<AuthResult<void>> updateProfile({String? fullName}) async {
+    try {
+      await _client.from('users').update({'full_name': fullName}).eq('id', _client.auth.currentUser!.id);
+      return const AuthSuccess(null);
+    } catch (e) {
+      return AuthFailure(_messageFromError(e));
+    }
+  }
+
   static AppUser? _appUserFromAuthUser(User u) {
     final id = u.id;
     if (id.isEmpty) return null;
     final meta = u.userMetadata ?? {};
     final fullName = meta['full_name'] as String? ?? u.email;
+    final username = meta['username'] as String? ?? u.email;
     return AppUser(
       id: id,
+      username: username,
       fullName: fullName,
       avatarUrl: meta['avatar_url'] as String?,
     );

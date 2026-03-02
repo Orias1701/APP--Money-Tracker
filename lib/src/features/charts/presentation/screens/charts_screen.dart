@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/format_helpers.dart';
+import '../../../groups/presentation/providers/active_group_provider.dart';
 import '../../../shared/presentation/providers/filter_provider.dart';
 import '../../../shared/presentation/widgets/filter_bottom_sheet.dart';
 import '../../../transactions/domain/transaction.dart';
@@ -28,15 +29,17 @@ class _ChartsScreenState extends ConsumerState<ChartsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final activeGroup = ref.watch(activeGroupProvider);
     final filterState = ref.watch(filterProvider);
 
-    // In Chart screen, if it's "Tất cả" (0), we might want to default to Last 30 days logic for the query to prevent crashing,
-    // since "Tất cả" technically means infinite history which is terrible for Charts.
-    // However, our backend requires explicitly set dates. If startDate/endDate are null, we'll supply a sweeping date.
     final effectiveStart = filterState.startDate ?? DateTime(2000, 1, 1);
     final effectiveEnd = filterState.endDate ?? DateTime.now();
 
-    final params = ChartsParams(from: effectiveStart, to: effectiveEnd);
+    final params = ChartsParams(
+      groupId: activeGroup?.id ?? '',
+      from: effectiveStart,
+      to: effectiveEnd,
+    );
 
     return DefaultTabController(
       length: 3,
