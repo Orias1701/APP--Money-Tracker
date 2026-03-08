@@ -29,7 +29,9 @@ class Account {
       name: map['name'] as String,
       accountType: map['account_type'] as String,
       balance: (map['balance'] is num) ? (map['balance'] as num).toDouble() : 0,
-      creditLimit: (map['credit_limit'] is num) ? (map['credit_limit'] as num).toDouble() : 0,
+      creditLimit: (map['credit_limit'] is num)
+          ? (map['credit_limit'] as num).toDouble()
+          : 0,
       currency: map['currency'] as String? ?? 'VND',
       includeInTotal: map['include_in_total'] as bool? ?? true,
     );
@@ -46,4 +48,14 @@ class Account {
       'include_in_total': includeInTotal,
     };
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is Account && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 }

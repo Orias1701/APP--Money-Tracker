@@ -65,20 +65,29 @@ class MePlaceholderScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
               ListTile(
-                leading: const Icon(Icons.workspace_premium, color: AppColors.primary),
-                title: const Text('Premium Member'),
+                leading: const Icon(
+                  Icons.workspace_premium,
+                  color: AppColors.primary,
+                ),
+                title: const Text('Mua Premium'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {},
               ),
               ListTile(
-                leading: const Icon(Icons.settings, color: AppColors.textSecondary),
+                leading: const Icon(
+                  Icons.settings,
+                  color: AppColors.textSecondary,
+                ),
                 title: const Text('Cài đặt'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {},
               ),
               ListTile(
-                leading: const Icon(Icons.logout, color: AppColors.textSecondary),
-                title: const Text('Sign out'),
+                leading: const Icon(
+                  Icons.logout,
+                  color: AppColors.textSecondary,
+                ),
+                title: const Text('Đăng xuất'),
                 onTap: () async {
                   await ref.read(authRepositoryProvider).signOut();
                   if (context.mounted) context.go('/login');

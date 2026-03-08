@@ -22,7 +22,7 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: kBottomNavigationBarHeight,
+      height: 70, // Increased height to prevent overflow when lifted
       width: double.infinity,
       decoration: const BoxDecoration(
         color: AppColors.surface,
@@ -125,11 +125,12 @@ class _NavItemState extends State<_NavItem> {
   Widget build(BuildContext context) {
     final isSelected = widget.selected;
     final double baseSize = widget.size;
-    final double borderWidth = isSelected ? baseSize * 0.2 : 0.0;
     final double lift = isSelected ? baseSize * 0.25 : 0.0;
     final bgColor = isSelected
         ? AppColors.primary
-        : (_hover ? AppColors.surface.withValues(alpha: 0.85) : AppColors.surface);
+        : (_hover
+              ? AppColors.surface.withValues(alpha: 0.85)
+              : AppColors.surface);
     final textColor = isSelected ? Colors.black : AppColors.textPrimary;
     final iconColor = isSelected ? Colors.black : AppColors.textPrimary;
 
@@ -149,17 +150,20 @@ class _NavItemState extends State<_NavItem> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeOut,
-                width: baseSize,
-                height: baseSize,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(14),
                   color: bgColor,
                   border: Border.all(
                     color: isSelected ? AppColors.primary : Colors.transparent,
-                    width: borderWidth,
+                    width: isSelected ? 1.5 : 0,
                   ),
                 ),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(widget.icon, size: 22, color: iconColor),
@@ -169,10 +173,12 @@ class _NavItemState extends State<_NavItem> {
                       style: TextStyle(
                         fontSize: 10,
                         color: textColor,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
                       ),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: TextOverflow.visible,
                     ),
                   ],
                 ),
@@ -186,7 +192,11 @@ class _NavItemState extends State<_NavItem> {
 }
 
 class _FabItem extends StatefulWidget {
-  const _FabItem({required this.size, required this.onTap, this.selected = false});
+  const _FabItem({
+    required this.size,
+    required this.onTap,
+    this.selected = false,
+  });
 
   final double size;
   final VoidCallback onTap;
