@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../common_widgets/transaction_tile.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/format_helpers.dart';
+import '../../../../shell/shell_app_bar_provider.dart';
 import '../../../accounts/domain/account.dart';
 import '../../../accounts/presentation/providers/accounts_provider.dart';
 import '../../../categories/domain/category.dart';
@@ -11,7 +13,6 @@ import '../../../categories/presentation/providers/categories_provider.dart';
 import '../../../groups/presentation/providers/active_group_provider.dart';
 import '../../../groups/presentation/widgets/group_switcher.dart';
 import '../../../shared/presentation/providers/filter_provider.dart';
-import '../../../shared/presentation/widgets/filter_bottom_sheet.dart';
 import '../../../transactions/domain/transaction.dart';
 import '../../../transactions/presentation/providers/transactions_provider.dart';
 
@@ -39,20 +40,20 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
     final accountsAsync = ref.watch(accountsListProvider);
     final categoriesAsync = ref.watch(categoriesListProvider);
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(shellAppBarTitleProvider.notifier).setTitle(
+            0,
+            const Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: SizedBox(
+                width: 256,
+                child: GroupSwitcher(),
+              ),
+            ),
+          );
+    });
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const GroupSwitcher(),
-        backgroundColor: AppColors.background,
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'records_fab',
-        onPressed: () {
-          FilterBottomSheet.show(context);
-        },
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.filter_list, color: Colors.black),
-      ),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(transactionsListProvider);
@@ -301,6 +302,7 @@ class _DaySection extends StatelessWidget {
             isExpense: t.isExpense,
             colorHex: cat?.colorHex,
             paidByLabel: showPaidBy ? (t.paidByUserName ?? t.paidBy) : null,
+            onTap: () => context.push('/edit-transaction', extra: t),
           );
         }),
       ],
