@@ -85,4 +85,58 @@ class TransactionRepository {
       return null;
     }
   }
+
+  Future<Transaction?> updateTransaction({
+    required String transactionId,
+    required String groupId,
+    String? accountId,
+    String? toAccountId,
+    String? categoryId,
+    String? type,
+    double? amount,
+    DateTime? transactionDate,
+    double? feeAmount,
+    String? note,
+  }) async {
+    try {
+      final map = <String, dynamic>{};
+      if (accountId != null) map['account_id'] = accountId;
+      if (toAccountId != null) map['to_account_id'] = toAccountId;
+      if (categoryId != null) map['category_id'] = categoryId;
+      if (type != null) map['type'] = type;
+      if (amount != null) map['amount'] = amount;
+      if (transactionDate != null) {
+        map['transaction_date'] = transactionDate.toIso8601String();
+      }
+      if (feeAmount != null) map['fee_amount'] = feeAmount;
+      if (note != null) map['note'] = note;
+      if (map.isEmpty) return null;
+      final res = await _client
+          .from('transactions')
+          .update(map)
+          .eq('id', transactionId)
+          .eq('group_id', groupId)
+          .select()
+          .single();
+      return Transaction.fromMap(res as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Xoá mềm: set row_status = 'deleted' (gọi RPC để có kết quả chính xác sau RLS).
+  Future<bool> softDeleteTransaction(String transactionId, String groupId) async {
+    try {
+      final res = await _client.rpc(
+        'soft_delete_transaction',
+        params: {
+          'p_transaction_id': transactionId,
+          'p_group_id': groupId,
+        },
+      );
+      return res == true;
+    } catch (_) {
+      return false;
+    }
+  }
 }

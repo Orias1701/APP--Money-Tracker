@@ -13,7 +13,9 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../charts/presentation/providers/analytics_provider.dart';
 import '../../../categories/domain/category.dart';
 import '../../../categories/presentation/providers/categories_provider.dart';
+import '../../../../shell/shell_app_bar_provider.dart';
 import '../../../groups/presentation/providers/active_group_provider.dart';
+import '../providers/add_screen_bar_provider.dart';
 import '../providers/transactions_provider.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
@@ -151,6 +153,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   Navigator.of(ctx).pop();
                   final type = _type;
                   ref.invalidate(categoriesByTypeProvider(type));
+                  ref.invalidate(categoriesListProvider);
                   if (result.category != null && mounted) {
                     setState(() => _selectedCategory = result.category);
                   }
@@ -180,6 +183,164 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final h = hex.startsWith('#') ? hex : '#$hex';
     if (h.length != 7) return AppColors.textSecondary;
     return Color(int.parse(h.substring(1), radix: 16) + 0xFF000000);
+  }
+
+  Future<void> _showEditCategoryDialog(Category c) async {
+    final nameController = TextEditingController(text: c.name);
+    String selectedColorHex = c.colorHex;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            title: const Text('Sửa danh mục'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Tên danh mục',
+                    ),
+                    autofocus: true,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Màu danh mục',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: _categoryColorPalette.map((hex) {
+                      final color = _colorFromHex(hex);
+                      final isSelected = selectedColorHex == hex;
+                      return GestureDetector(
+                        onTap: () => setDialogState(() => selectedColorHex = hex),
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.transparent,
+                              width: 3,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: color.withValues(alpha: 0.5),
+                                blurRadius: isSelected ? 6 : 2,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: isSelected
+                              ? const Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 20,
+                                )
+                              : null,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Hủy'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  final name = nameController.text.trim();
+                  if (name.isEmpty) return;
+                  final result = await ref
+                      .read(categoryRepositoryProvider)
+                      .updateCategory(
+                        c.id,
+                        name: name,
+                        colorHex: selectedColorHex,
+                      );
+                  if (!ctx.mounted) return;
+                  Navigator.of(ctx).pop();
+                  final type = _type;
+                  ref.invalidate(categoriesByTypeProvider(type));
+                  ref.invalidate(categoriesListProvider);
+                  if (result.category != null && mounted) {
+                    setState(() => _selectedCategory = result.category);
+                  }
+                  if (mounted && result.error != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(result.error!)),
+                    );
+                  }
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.black,
+                ),
+                child: const Text('Lưu'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _showDeleteCategoryConfirm(Category c) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Xoá danh mục'),
+        content: Text(
+          'Bạn có chắc muốn xoá danh mục "${c.name}"? Giao dịch đã dùng danh mục này vẫn giữ nguyên.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.expense,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Xoá'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+    final ok = await ref.read(categoryRepositoryProvider).softDeleteCategory(c.id);
+    final type = _type;
+    ref.invalidate(categoriesByTypeProvider(type));
+    ref.invalidate(categoriesListProvider);
+    if (mounted) {
+      if (_selectedCategory?.id == c.id) {
+        setState(() => _selectedCategory = null);
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(ok ? 'Đã xoá danh mục.' : 'Không xoá được danh mục.'),
+        ),
+      );
+    }
   }
 
   Future<void> _save() async {
@@ -267,32 +428,18 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       categoriesByTypeProvider(_type == 'transfer' ? 'expense' : _type),
     );
     final accountsAsync = ref.watch(accountsListProvider);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(shellAppBarTitleProvider.notifier).setTitle(2, const AddScreenBarContent());
+      ref.read(addScreenBarProvider.notifier).update(
+            onCancel: () => context.go('/'),
+            onSave: _save,
+            isLoading: _isLoading,
+          );
+    });
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        leading: IconButton(
-          onPressed: () => context.go('/'),
-          icon: const Icon(Icons.close),
-          tooltip: 'Hủy',
-        ),
-        title: const Text('Add'),
-        actions: [
-          TextButton(
-            onPressed: _isLoading ? null : _save,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text(
-                    'Save',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-          ),
-        ],
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -350,6 +497,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                         );
                       }
                       final c = categories[i];
+                      final isUserCategory = c.userId != null && c.userId!.isNotEmpty;
                       return CategoryGridItem(
                         label: c.name,
                         selected: _selectedCategory?.id == c.id,
@@ -370,6 +518,40 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                               );
                           });
                         },
+                        onLongPress: isUserCategory
+                            ? () {
+                                showModalBottomSheet<void>(
+                                  context: context,
+                                  backgroundColor: AppColors.surface,
+                                  builder: (ctx) => SafeArea(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        ListTile(
+                                          leading: const Icon(Icons.edit),
+                                          title: const Text('Sửa danh mục'),
+                                          onTap: () {
+                                            Navigator.of(ctx).pop();
+                                            _showEditCategoryDialog(c);
+                                          },
+                                        ),
+                                        ListTile(
+                                          leading: const Icon(Icons.delete,
+                                              color: AppColors.expense),
+                                          title: const Text('Xoá danh mục',
+                                              style: TextStyle(
+                                                  color: AppColors.expense)),
+                                          onTap: () {
+                                            Navigator.of(ctx).pop();
+                                            _showDeleteCategoryConfirm(c);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }
+                            : null,
                       );
                     },
                   );
