@@ -48,10 +48,15 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
           SafeArea(
             bottom: false,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  IconButton(
+                    icon: const Icon(Icons.people_outline, color: AppColors.textPrimary),
+                    onPressed: () => context.push('/friend'),
+                    tooltip: 'Friend',
+                  ),
                   IconButton(
                     icon: invitationCount > 0
                         ? Badge(

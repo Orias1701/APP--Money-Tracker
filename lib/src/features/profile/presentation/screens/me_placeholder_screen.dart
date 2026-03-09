@@ -6,7 +6,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../auth/data/auth_repository.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../groups/presentation/providers/active_group_provider.dart';
-import '../widgets/me_friend_tab.dart';
 
 class MePlaceholderScreen extends ConsumerStatefulWidget {
   const MePlaceholderScreen({super.key});
@@ -33,7 +32,6 @@ class _MePlaceholderScreenState extends ConsumerState<MePlaceholderScreen> {
           controller: controller,
           decoration: const InputDecoration(
             labelText: 'Họ tên',
-            border: OutlineInputBorder(),
           ),
           autofocus: true,
         ),
@@ -68,29 +66,14 @@ class _MePlaceholderScreenState extends ConsumerState<MePlaceholderScreen> {
     final userAsync = ref.watch(currentUserProvider);
     final activeGroup = ref.watch(activeGroupProvider);
     final groupsAsync = ref.watch(userGroupsListProvider);
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Me'),
         backgroundColor: AppColors.background,
-        appBar: AppBar(
-          title: const Text('Me'),
-          backgroundColor: AppColors.background,
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(48),
-            child: TabBar(
-              labelColor: AppColors.primary,
-              unselectedLabelColor: AppColors.textSecondary,
-              indicatorColor: AppColors.primary,
-              tabs: const [
-                Tab(text: 'Profile'),
-                Tab(text: 'Friend'),
-              ],
-            ),
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            userAsync.when(
+      ),
+      body: userAsync.when(
               data: (user) => SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -347,12 +330,8 @@ class _MePlaceholderScreenState extends ConsumerState<MePlaceholderScreen> {
             ],
           ),
         ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Lỗi: $e')),
-            ),
-            const MeFriendTab(),
-          ],
-        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Lỗi: $e')),
       ),
     );
   }

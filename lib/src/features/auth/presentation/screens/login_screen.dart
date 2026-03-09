@@ -83,10 +83,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     if (!mounted) return;
     setState(() => _isLoading = false);
     if (result is AuthSuccess) {
+      ref.invalidate(currentUserProvider);
       await LastLoginService.saveLastLoginIdentifier(
         _identifierController.text.trim(),
       );
-      context.go('/');
+      if (mounted) context.go('/');
     } else if (result is AuthFailure) {
       setState(() => _errorMessage = result.message);
     }
@@ -123,18 +124,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     color: AppColors.textPrimary,
                     fontSize: 16,
                   ),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Email hoặc tên đăng nhập',
                     hintText: 'email@... hoặc username',
-                    hintStyle: TextStyle(
-                      color: AppColors.textSecondary.withValues(alpha: 0.5),
-                    ),
-                    border: const OutlineInputBorder(),
-                    labelStyle: const TextStyle(color: AppColors.textSecondary),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 18,
-                    ),
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
@@ -156,15 +148,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   decoration: InputDecoration(
                     labelText: 'Mật khẩu',
                     hintText: 'Nhập mật khẩu',
-                    hintStyle: TextStyle(
-                      color: AppColors.textSecondary.withValues(alpha: 0.5),
-                    ),
-                    border: const OutlineInputBorder(),
-                    labelStyle: const TextStyle(color: AppColors.textSecondary),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 18,
-                    ),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
@@ -202,11 +185,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 const SizedBox(height: 28),
                 FilledButton(
                   onPressed: _isLoading ? null : _submit,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                  ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 22,
