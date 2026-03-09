@@ -137,8 +137,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     ),
                   ),
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty)
+                    if (v == null || v.trim().isEmpty) {
                       return 'Nhập email hoặc tên đăng nhập';
+                    }
+                    if (!v.contains('@')) {
+                      return 'Email không hợp lệ';
+                    }
                     return null;
                   },
                 ),
