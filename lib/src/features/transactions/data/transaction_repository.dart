@@ -23,10 +23,12 @@ class TransactionRepository {
       if (accountIds != null && accountIds.isNotEmpty) {
         query = query.inFilter('account_id', accountIds);
       }
-      if (from != null)
+      if (from != null) {
         query = query.gte('transaction_date', from.toIso8601String());
-      if (to != null)
+      }
+      if (to != null) {
         query = query.lte('transaction_date', to.toIso8601String());
+      }
       final res = await query
           .order('transaction_date', ascending: false)
           .limit(limit);
