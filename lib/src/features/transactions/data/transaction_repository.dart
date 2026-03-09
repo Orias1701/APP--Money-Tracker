@@ -11,63 +11,76 @@ class TransactionRepository {
   String? get _userId => _client.auth.currentUser?.id;
 
   Future<List<Transaction>> getTransactions({
+    required String groupId,
     List<String>? accountIds,
     DateTime? from,
     DateTime? to,
     int limit = 500,
   }) async {
-    final uid = _userId;
-    if (uid == null) return [];
+    if (groupId.isEmpty) return [];
     try {
-      var query = _client.from('transactions').select().eq('user_id', uid);
+      var query = _client
+          .from('transactions')
+          .select(
+            '*, created_by_user:users!transactions_created_by_fkey(full_name, username, avatar_url), paid_by_user:users!transactions_paid_by_fkey(full_name, username, avatar_url)',
+          )
+          .eq('group_id', groupId)
+          .or('row_status.is.null,row_status.eq.active');
       if (accountIds != null && accountIds.isNotEmpty) {
         query = query.inFilter('account_id', accountIds);
       }
-      if (from != null)
+      if (from != null) {
         query = query.gte('transaction_date', from.toIso8601String());
-      if (to != null)
+      }
+      if (to != null) {
         query = query.lte('transaction_date', to.toIso8601String());
-      final res = await query
-          .order('transaction_date', ascending: false)
-          .limit(limit);
-      return (res as List)
-          .map((e) => Transaction.fromMap(e as Map<String, dynamic>))
-          .toList();
+      }
+      final res = await query.order('transaction_date', ascending: false).limit(limit);
+      return (res as List).map((e) => Transaction.fromMap(e as Map<String, dynamic>)).toList();
     } catch (_) {
-      return [];
+      try {
+        var fallback = _client.from('transactions').select().eq('group_id', groupId);
+        if (accountIds != null && accountIds.isNotEmpty) fallback = fallback.inFilter('account_id', accountIds);
+        if (from != null) fallback = fallback.gte('transaction_date', from.toIso8601String());
+        if (to != null) fallback = fallback.lte('transaction_date', to.toIso8601String());
+        final res = await fallback.order('transaction_date', ascending: false).limit(limit);
+        return (res as List).map((e) => Transaction.fromMap(e as Map<String, dynamic>)).toList();
+      } catch (_) {
+        return [];
+      }
     }
   }
 
   Future<Transaction?> addTransaction({
+    required String groupId,
     required String accountId,
     required String type,
     required double amount,
     required DateTime transactionDate,
+    required String createdBy,
+    required String paidBy,
     String? toAccountId,
     String? categoryId,
     double feeAmount = 0,
     String? note,
   }) async {
-    final uid = _userId;
-    if (uid == null || amount <= 0) return null;
+    if (groupId.isEmpty || amount <= 0) return null;
     try {
       final map = {
-        'user_id': uid,
+        'group_id': groupId,
         'account_id': accountId,
         'type': type,
         'amount': amount,
         'transaction_date': transactionDate.toIso8601String(),
         'fee_amount': feeAmount,
         'note': note,
+        'created_by': createdBy,
+        'paid_by': paidBy,
       };
       if (toAccountId != null) map['to_account_id'] = toAccountId;
       if (categoryId != null) map['category_id'] = categoryId;
-      final res = await _client
-          .from('transactions')
-          .insert(map)
-          .select()
-          .single();
-      return Transaction.fromMap(res);
+      final res = await _client.from('transactions').insert(map).select().single();
+      return Transaction.fromMap(res as Map<String, dynamic>);
     } catch (_) {
       return null;
     }

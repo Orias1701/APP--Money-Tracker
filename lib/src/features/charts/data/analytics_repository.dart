@@ -13,10 +13,11 @@ class AnalyticsRepository {
   final CategoryRepository _catRepo;
 
   Future<ExpenseAnalytics> getExpenseAnalytics({
+    required String groupId,
     required DateTime from,
     required DateTime to,
   }) async {
-    final transactions = await _txRepo.getTransactions(from: from, to: to);
+    final transactions = await _txRepo.getTransactions(groupId: groupId, from: from, to: to);
     final categories = await _catRepo.getCategories(type: 'expense');
     final catMap = {for (final c in categories) c.id: c};
     final byCategory = <String, double>{};
@@ -42,10 +43,11 @@ class AnalyticsRepository {
   }
 
   Future<IncomeAnalytics> getIncomeAnalytics({
+    required String groupId,
     required DateTime from,
     required DateTime to,
   }) async {
-    final transactions = await _txRepo.getTransactions(from: from, to: to);
+    final transactions = await _txRepo.getTransactions(groupId: groupId, from: from, to: to);
     final categories = await _catRepo.getCategories(type: 'income');
     final catMap = {for (final c in categories) c.id: c};
     final byCategory = <String, double>{};
@@ -71,12 +73,13 @@ class AnalyticsRepository {
   }
 
   Future<List<Transaction>> getTopTransactions({
+    required String groupId,
     required DateTime from,
     required DateTime to,
     required String type,
     int limit = 5,
   }) async {
-    final tx = await _txRepo.getTransactions(from: from, to: to);
+    final tx = await _txRepo.getTransactions(groupId: groupId, from: from, to: to);
     final filtered = tx.where((t) => t.type == type).toList();
     filtered.sort((a, b) => b.amount.compareTo(a.amount));
     return filtered.take(limit).toList();

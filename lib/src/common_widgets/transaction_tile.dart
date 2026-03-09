@@ -15,6 +15,7 @@ class TransactionTile extends StatelessWidget {
     required this.isExpense,
     this.colorHex,
     this.icon,
+    this.paidByLabel,
   });
 
   final String title;
@@ -24,6 +25,8 @@ class TransactionTile extends StatelessWidget {
   final bool isExpense;
   final String? colorHex;
   final IconData? icon;
+  /// Hiển thị khi quản lý nhóm (không phải cá nhân): tên/avatar người thanh toán.
+  final String? paidByLabel;
 
   static Color _parseHex(String? hex) {
     if (hex == null || hex.isEmpty) return AppColors.textSecondary;
@@ -50,9 +53,9 @@ class TransactionTile extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      subtitle: subtitle != null
+      subtitle: (subtitle != null || paidByLabel != null)
           ? Text(
-              subtitle!,
+              [if (subtitle != null && subtitle!.isNotEmpty) subtitle!, if (paidByLabel != null && paidByLabel!.isNotEmpty) 'Trả bởi: $paidByLabel'].join(' • '),
               style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 12,

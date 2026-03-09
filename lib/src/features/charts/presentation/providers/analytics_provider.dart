@@ -13,37 +13,53 @@ final analyticsRepositoryProvider = Provider<AnalyticsRepository>((ref) {
 });
 
 class ChartsParams {
-  const ChartsParams({required this.from, required this.to});
+  const ChartsParams({
+    required this.groupId,
+    required this.from,
+    required this.to,
+  });
+  final String groupId;
   final DateTime from;
   final DateTime to;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ChartsParams && from == other.from && to == other.to;
+      other is ChartsParams &&
+          groupId == other.groupId &&
+          from == other.from &&
+          to == other.to;
 
   @override
-  int get hashCode => Object.hash(from, to);
+  int get hashCode => Object.hash(groupId, from, to);
 }
 
 final expenseAnalyticsProvider =
     FutureProvider.family<ExpenseAnalytics, ChartsParams>((ref, params) async {
-      return ref
-          .read(analyticsRepositoryProvider)
-          .getExpenseAnalytics(from: params.from, to: params.to);
+      if (params.groupId.isEmpty) return const ExpenseAnalytics(total: 0, byCategory: []);
+      return ref.read(analyticsRepositoryProvider).getExpenseAnalytics(
+            groupId: params.groupId,
+            from: params.from,
+            to: params.to,
+          );
     });
 
 final incomeAnalyticsProvider =
     FutureProvider.family<IncomeAnalytics, ChartsParams>((ref, params) async {
-      return ref
-          .read(analyticsRepositoryProvider)
-          .getIncomeAnalytics(from: params.from, to: params.to);
+      if (params.groupId.isEmpty) return const IncomeAnalytics(total: 0, byCategory: []);
+      return ref.read(analyticsRepositoryProvider).getIncomeAnalytics(
+            groupId: params.groupId,
+            from: params.from,
+            to: params.to,
+          );
     });
 
 final topIncomeProvider =
     FutureProvider.family<List<Transaction>, ChartsParams>((ref, params) async {
+      if (params.groupId.isEmpty) return [];
       final repo = ref.read(analyticsRepositoryProvider);
       return repo.getTopTransactions(
+        groupId: params.groupId,
         from: params.from,
         to: params.to,
         type: 'income',
@@ -53,8 +69,10 @@ final topIncomeProvider =
 
 final topExpenseProvider =
     FutureProvider.family<List<Transaction>, ChartsParams>((ref, params) async {
+      if (params.groupId.isEmpty) return [];
       final repo = ref.read(analyticsRepositoryProvider);
       return repo.getTopTransactions(
+        groupId: params.groupId,
         from: params.from,
         to: params.to,
         type: 'expense',
