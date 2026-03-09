@@ -28,10 +28,8 @@ class MainShellScreen extends StatelessWidget {
           });
         },
         onFabTap: () {
-          DebugTapLogger.log('MainShell: FAB onPressed -> goBranch(2) Add tab');
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) navigationShell.goBranch(2);
-          });
+          DebugTapLogger.log('MainShell: FAB onPressed -> go /add');
+          context.go('/add');
         },
       ),
     );
