@@ -46,6 +46,7 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
         backgroundColor: AppColors.background,
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'records_fab',
         onPressed: () {
           FilterBottomSheet.show(context);
         },

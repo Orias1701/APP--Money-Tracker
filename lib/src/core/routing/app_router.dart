@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,6 +12,7 @@ import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/charts/presentation/screens/charts_screen.dart';
 import '../../features/groups/presentation/screens/group_members_screen.dart';
 import '../../features/groups/presentation/screens/manage_groups_screen.dart';
+import '../../features/profile/presentation/screens/friend_screen.dart';
 import '../../features/profile/presentation/screens/me_placeholder_screen.dart';
 import '../../features/records/presentation/screens/records_screen.dart';
 import '../../features/reports/presentation/screens/reports_screen.dart';
@@ -95,7 +97,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'manage-groups',
                     pageBuilder: (context, state) => const NoTransitionPage(
-                      child: ManageGroupsScreen(),
+                      child: HeroMode(
+                        enabled: false,
+                        child: ManageGroupsScreen(),
+                      ),
                     ),
                   ),
                   GoRoute(
@@ -107,10 +112,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       final isPersonal = extra?['isPersonal'] as bool? ?? true;
                       return NoTransitionPage(
                         key: ValueKey('group-members-$groupId'),
-                        child: GroupMembersScreen(
-                          groupId: groupId,
-                          groupName: groupName,
-                          isPersonal: isPersonal,
+                        child: HeroMode(
+                          enabled: false,
+                          child: GroupMembersScreen(
+                            groupId: groupId,
+                            groupName: groupName,
+                            isPersonal: isPersonal,
+                          ),
                         ),
                       );
                     },
@@ -152,7 +160,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/notifications',
-        builder: (context, state) => const NotificationsScreen(),
+        builder: (context, state) => const HeroMode(
+          enabled: false,
+          child: NotificationsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/friend',
+        builder: (context, state) => const HeroMode(
+          enabled: false,
+          child: FriendScreen(),
+        ),
       ),
     ],
   );

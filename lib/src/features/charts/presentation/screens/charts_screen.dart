@@ -60,6 +60,7 @@ class _ChartsScreenState extends ConsumerState<ChartsScreen> {
           ),
         ),
         floatingActionButton: FloatingActionButton(
+          heroTag: 'charts_fab',
           onPressed: () {
             FilterBottomSheet.show(context);
           },
