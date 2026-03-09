@@ -30,41 +30,39 @@ class CategoryGridItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = selected ? _parseHex(colorHex) : AppColors.textSecondary;
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minWidth: 1, minHeight: 1),
-      child: ClipRect(
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: color.withValues(alpha: selected ? 0.35 : 0.15),
-                  child: Icon(
-                    icon ?? Icons.category,
-                    color: color,
-                    size: 28,
-                  ),
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: color.withValues(alpha: selected ? 0.35 : 0.15),
+                child: Icon(
+                  icon ?? Icons.category,
+                  color: color,
+                  size: 28,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: selected ? AppColors.textPrimary : AppColors.textSecondary,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: selected ? AppColors.textPrimary : AppColors.textSecondary,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                 ),
-              ],
-            ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
       ),

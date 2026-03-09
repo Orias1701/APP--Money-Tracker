@@ -15,6 +15,7 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -26,6 +27,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   void dispose() {
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -40,6 +42,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final result = await ref.read(authRepositoryProvider).signUpWithEmail(
           email: _emailController.text.trim(),
           password: _passwordController.text,
+          username: _usernameController.text.trim(),
           fullName: _fullNameController.text.trim().isEmpty
               ? null
               : _fullNameController.text.trim(),
@@ -71,10 +74,29 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               children: [
                 const SizedBox(height: 24),
                 TextFormField(
+                  controller: _usernameController,
+                  textCapitalization: TextCapitalization.none,
+                  autocorrect: false,
+                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
+                  decoration: InputDecoration(
+                    labelText: 'Tên đăng nhập',
+                    hintText: 'username',
+                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
+                    border: const OutlineInputBorder(),
+                    labelStyle: const TextStyle(color: AppColors.textSecondary),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                  ),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Nhập tên đăng nhập';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 24),
+                TextFormField(
                   controller: _fullNameController,
                   style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
                   decoration: InputDecoration(
-                    labelText: 'Họ tên',
+                    labelText: 'Họ tên (tùy chọn)',
                     hintText: 'Nguyễn Văn A',
                     hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
                     border: const OutlineInputBorder(),

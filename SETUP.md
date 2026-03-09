@@ -119,9 +119,10 @@ SUPABASE_ANON_KEY=your-anon-key-here
 2. **Bật RLS và policy:**  
    Mở **SQL Editor**, chạy lần lượt:
    - `Assets/SQL/schema.sql` (tạo bảng nếu chưa có)
-   - `Assets/SQL/rls_policies.sql` (tránh lỗi 403 khi thêm tài khoản/giao dịch)
-   - `Assets/SQL/rpc_get_email_for_login.sql` (nếu cần đăng nhập bằng email hoặc tên)
+   - `Assets/SQL/migration_groups_rls_rpc.sql` (**bắt buộc** – tránh lỗi 500 khi load nhóm, giao dịch, tạo nhóm, tham gia nhóm)
    - `Assets/SQL/seed.sql` (nếu cần dữ liệu mẫu)
+   
+   **Nếu gặp lỗi 500** khi vào Me, Records, Charts hoặc khi tạo giao dịch: chạy `Assets/SQL/migration_groups_rls_rpc.sql` trong SQL Editor.
 
 ### 6.4. Chạy ứng dụng
 

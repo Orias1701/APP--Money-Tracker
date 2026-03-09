@@ -9,9 +9,11 @@ import '../../../../core/utils/debug_tap_logger.dart';
 import '../../../../core/utils/format_helpers.dart';
 import '../../../accounts/domain/account.dart';
 import '../../../accounts/presentation/providers/accounts_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../charts/presentation/providers/analytics_provider.dart';
 import '../../../categories/domain/category.dart';
 import '../../../categories/presentation/providers/categories_provider.dart';
+import '../../../groups/presentation/providers/active_group_provider.dart';
 import '../providers/transactions_provider.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
@@ -27,6 +29,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   Category? _selectedCategory;
   Account? _fromAccount;
   Account? _toAccount;
+  String? _paidByUserId;
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
   DateTime _date = DateTime.now();
@@ -139,7 +142,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 onPressed: () async {
                   final name = nameController.text.trim();
                   if (name.isEmpty) return;
-                  Navigator.of(ctx).pop();
                   final repo = ref.read(categoryRepositoryProvider);
                   final result = await repo.addCategory(
                     name: name,
@@ -147,28 +149,21 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     orderIndex: orderIndex,
                     colorHex: selectedColorHex,
                   );
+                  if (!ctx.mounted) return;
+                  Navigator.of(ctx).pop();
                   final type = _type;
-                  if (!context.mounted) return;
-                  DebugTapLogger.log(
-                    'AddTx: AddCategory dialog OK, scheduling invalidate',
-                  );
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    DebugTapLogger.log(
-                      'AddTx: PostFrame invalidate categories + setState',
+                  ref.invalidate(categoriesByTypeProvider(type));
+                  if (result.category != null && mounted) {
+                    setState(() => _selectedCategory = result.category);
+                  }
+                  if (mounted && result.category == null) {
+                    final msg = result.error?.isNotEmpty == true
+                        ? result.error!
+                        : 'Không thêm được danh mục';
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(msg)),
                     );
-                    ref.invalidate(categoriesByTypeProvider(type));
-                    if (result.category != null && mounted) {
-                      setState(() => _selectedCategory = result.category);
-                    }
-                    if (mounted && result.category == null) {
-                      final msg = result.error?.isNotEmpty == true
-                          ? result.error!
-                          : 'Không thêm được danh mục';
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(msg)),
-                      );
-                    }
-                  });
+                  }
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -221,13 +216,25 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         return;
       }
     }
+    final activeGroup = ref.read(activeGroupProvider);
+    final currentUser = await ref.read(currentUserProvider.future);
+    if (activeGroup == null || currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn nhóm hoặc đăng nhập lại')),
+      );
+      return;
+    }
+    final paidBy = _paidByUserId ?? currentUser.id;
     setState(() => _isLoading = true);
     final repo = ref.read(transactionRepositoryProvider);
     final tx = await repo.addTransaction(
+      groupId: activeGroup.id,
       accountId: _fromAccount!.id,
       type: _type,
       amount: amount,
       transactionDate: _date,
+      createdBy: currentUser.id,
+      paidBy: paidBy,
       toAccountId: _type == 'transfer' ? _toAccount!.id : null,
       categoryId: _type != 'transfer' ? _selectedCategory?.id : null,
       note: _noteController.text.trim().isEmpty
@@ -377,6 +384,62 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               ),
               const SizedBox(height: 24),
             ],
+            Builder(
+              builder: (context) {
+                final activeGroup = ref.watch(activeGroupProvider);
+                final currentUserAsync = ref.watch(currentUserProvider);
+                final paidByDefault = currentUserAsync.valueOrNull?.id;
+                final showPaidBy = activeGroup != null && !activeGroup.isPersonal;
+                final membersAsync = showPaidBy
+                    ? ref.watch(groupMembersProvider(activeGroup.id))
+                    : null;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (showPaidBy && membersAsync != null) ...[
+                      membersAsync.when(
+                        data: (members) {
+                          final selectedId = _paidByUserId ?? paidByDefault;
+                          if (members.isEmpty) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: DropdownButtonFormField<String>(
+                              value: members.any((m) => m.userId == selectedId)
+                                  ? selectedId
+                                  : (members.isNotEmpty ? members.first.userId : null),
+                              decoration: const InputDecoration(
+                                labelText: 'Người thanh toán',
+                                border: OutlineInputBorder(),
+                              ),
+                              dropdownColor: AppColors.surface,
+                              items: members
+                                  .map(
+                                    (m) => DropdownMenuItem<String>(
+                                      value: m.userId,
+                                      child: Text(
+                                        m.user?.fullName?.trim().isNotEmpty == true
+                                            ? m.user!.fullName!
+                                            : (m.user?.username ?? m.userId),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (id) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  if (mounted) setState(() => _paidByUserId = id);
+                                });
+                              },
+                            ),
+                          );
+                        },
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, __) => const SizedBox.shrink(),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
             accountsAsync.when(
               data: (accounts) {
                 return Column(
